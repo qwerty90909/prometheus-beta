@@ -45,18 +45,19 @@ def test_huffman_decode_empty_string():
 
 def test_huffman_decode_invalid_encoded_data():
     """Test decoding with invalid encoded data."""
-    codes = {'a': '0', 'b': '1'}
-    
-    # Sequences that cannot be fully decoded
-    invalid_sequences = [
-        "010",  # Contains a sequence that doesn't map to any known code
-        "100",  # Contains a sequence that doesn't fully decode
-        "1010101"  # Partially decodable but not fully
+    invalid_test_cases = [
+        # Completely invalid scenarios
+        {"codes": {'a': '0', 'b': '1'}, "test_sequences": ["010", "100", "1010101"]},
+        
+        # Edge cases with conflicting prefix codes
+        {"codes": {'a': '0', 'ab': '01'}, "test_sequences": ["01"]},
     ]
     
-    for seq in invalid_sequences:
-        with pytest.raises(ValueError, match="Invalid encoded data"):
-            huffman_decode(seq, codes)
+    for test_case in invalid_test_cases:
+        codes = test_case['codes']
+        for seq in test_case['test_sequences']:
+            with pytest.raises(ValueError, match="Invalid encoded data|Huffman codes are not prefix-free"):
+                huffman_decode(seq, codes)
 
 def test_generate_huffman_codes():
     """Test Huffman code generation."""
