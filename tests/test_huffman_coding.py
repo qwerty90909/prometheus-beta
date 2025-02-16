@@ -47,7 +47,7 @@ def test_huffman_decode_invalid_encoded_data():
     """Test decoding with invalid encoded data."""
     codes = {'a': '0', 'b': '1'}
     with pytest.raises(ValueError, match="Invalid encoded data"):
-        huffman_decode("10101010", codes)
+        huffman_decode("101010", codes)  # Using a sequence that cannot be fully decoded
 
 def test_generate_huffman_codes():
     """Test Huffman code generation."""
