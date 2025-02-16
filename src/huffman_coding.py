@@ -142,7 +142,7 @@ def huffman_decode(encoded_data, codes):
     for bit in encoded_data:
         current_code += bit
         
-        # Try to find a matching code
+        # Attempt to find code match
         matching_codes = [code for code in reverse_codes if code == current_code]
         
         if matching_codes:
@@ -150,15 +150,18 @@ def huffman_decode(encoded_data, codes):
             current_code = ''
         
         # If no code is a prefix, it's an invalid encoding
-        if not any(code.startswith(current_code) for code in reverse_codes):
-            raise ValueError("Invalid encoded data: Could not fully decode")
+        valid_prefix = any(code.startswith(current_code) for code in reverse_codes)
         
-        # Prevent excessively long sequences
-        if len(current_code) > max(len(code) for code in reverse_codes):
-            raise ValueError("Invalid encoded data: Exceeded maximum code length")
+        if not valid_prefix:
+            raise ValueError("Invalid encoded data: Invalid or undecodable bit sequence")
+        
+        # Reject if current sequence is longer than any valid code
+        max_code_len = max(len(code) for code in reverse_codes)
+        if len(current_code) > max_code_len:
+            raise ValueError("Invalid encoded data: Sequence exceeds maximum code length")
     
     # Ensure complete decoding
     if current_code:
-        raise ValueError("Invalid encoded data: Incomplete decoding")
+        raise ValueError("Invalid encoded data: Partial or incomplete encoded sequence")
     
     return ''.join(decoded)
