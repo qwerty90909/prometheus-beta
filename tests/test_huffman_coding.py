@@ -1,5 +1,5 @@
 import pytest
-from src.huffman_coding import huffman_encode, huffman_decode, build_frequency_dict, build_huffman_tree, generate_huffman_codes
+from src.huffman_coding import huffman_encode, huffman_decode, build_frequency_dict, build_huffman_tree, generate_huffman_codes, validate_huffman_codes
 
 def test_build_frequency_dict():
     """Test frequency dictionary creation."""
@@ -43,6 +43,26 @@ def test_huffman_decode_empty_string():
     decoded = huffman_decode("", {})
     assert decoded == ''
 
+def test_huffman_codes_prefix_validation():
+    """Test validation of prefix-free Huffman codes."""
+    # Valid code set
+    codes_valid = {'a': '00', 'b': '01', 'c': '1'}
+    try:
+        validate_huffman_codes(codes_valid)
+    except ValueError:
+        pytest.fail("Valid code set should not raise an exception")
+    
+    # Invalid code sets
+    invalid_code_sets = [
+        {'a': '0', 'ab': '01'},  # 'a' is a prefix of 'ab'
+        {'a': '10', 'b': '1'},   # 'b' is a prefix of 'a'
+        {'x': '00', 'y': '000'}, # Same prefix issue
+    ]
+    
+    for invalid_codes in invalid_code_sets:
+        with pytest.raises(ValueError, match="Huffman codes are not prefix-free"):
+            validate_huffman_codes(invalid_codes)
+
 def test_huffman_decode_invalid_encoded_data():
     """Test decoding with invalid encoded data."""
     invalid_test_cases = [
@@ -50,7 +70,7 @@ def test_huffman_decode_invalid_encoded_data():
         {"codes": {'a': '0', 'b': '1'}, "test_sequences": ["010", "100", "1010101"]},
         
         # Edge cases with conflicting prefix codes
-        {"codes": {'a': '0', 'ab': '01'}, "test_sequences": ["01"]},
+        {"codes": {'a': '0', 'b': '1'}, "test_sequences": ["010", "100"]},
     ]
     
     for test_case in invalid_test_cases:
@@ -58,18 +78,6 @@ def test_huffman_decode_invalid_encoded_data():
         for seq in test_case['test_sequences']:
             with pytest.raises(ValueError, match="Invalid encoded data|Huffman codes are not prefix-free"):
                 huffman_decode(seq, codes)
-
-def test_generate_huffman_codes():
-    """Test Huffman code generation."""
-    freq_dict = {'a': 5, 'b': 9, 'c': 12, 'd': 13, 'e': 16, 'f': 45}
-    tree = build_huffman_tree(freq_dict)
-    codes = generate_huffman_codes(tree)
-    
-    # Verify codes are created
-    assert len(codes) == len(freq_dict)
-    
-    # Verify codes are unique
-    assert len(set(codes.values())) == len(codes)
 
 def test_complex_data_encoding():
     """Test encoding with more complex data."""

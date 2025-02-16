@@ -63,10 +63,15 @@ def generate_huffman_codes(root):
     return codes
 
 def validate_huffman_codes(codes):
-    """Validate that Huffman codes are prefix-free."""
-    all_codes = list(codes.values())
-    for i, code1 in enumerate(all_codes):
-        for code2 in all_codes[i+1:]:
+    """
+    Validate that Huffman codes are prefix-free.
+    
+    Raises:
+        ValueError: If codes are not prefix-free
+    """
+    code_list = list(codes.values())
+    for i, code1 in enumerate(code_list):
+        for code2 in code_list[i+1:]:
             if code1.startswith(code2) or code2.startswith(code1):
                 raise ValueError("Huffman codes are not prefix-free")
 
@@ -125,8 +130,8 @@ def huffman_decode(encoded_data, codes):
     if not encoded_data:
         return ''
     
-    # Validate codes first
-    validate_huffman_codes({k:v for k,v in codes.items()})
+    # Validate codes
+    validate_huffman_codes(codes)
     
     # Invert the codes dictionary
     reverse_codes = {code: char for char, code in codes.items()}
@@ -137,15 +142,21 @@ def huffman_decode(encoded_data, codes):
     for bit in encoded_data:
         current_code += bit
         
-        # Check if current_code matches any code
+        # Special case: exact code match
         if current_code in reverse_codes:
             decoded.append(reverse_codes[current_code])
             current_code = ''
-        elif not any(code.startswith(current_code) for code in reverse_codes):
-            # If current code is not a prefix of any code, it's invalid
+        
+        # Invalid scenario checks
+        if not any(code.startswith(current_code) for code in reverse_codes):
+            # No code starts with the current sequence
+            raise ValueError("Invalid encoded data: Could not fully decode")
+        
+        # Prevent infinite loop or excessive processing
+        if len(current_code) > max(len(code) for code in reverse_codes):
             raise ValueError("Invalid encoded data: Could not fully decode")
     
-    # Check if we successfully decoded everything
+    # Final validation
     if current_code:
         raise ValueError("Invalid encoded data: Could not fully decode")
     
