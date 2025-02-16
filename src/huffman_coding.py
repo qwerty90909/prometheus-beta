@@ -62,6 +62,14 @@ def generate_huffman_codes(root):
     traverse(root, "")
     return codes
 
+def validate_huffman_codes(codes):
+    """Validate that Huffman codes are prefix-free."""
+    all_codes = list(codes.values())
+    for i, code1 in enumerate(all_codes):
+        for code2 in all_codes[i+1:]:
+            if code1.startswith(code2) or code2.startswith(code1):
+                raise ValueError("Huffman codes are not prefix-free")
+
 def huffman_encode(data):
     """
     Encode input data using Huffman coding.
@@ -91,6 +99,9 @@ def huffman_encode(data):
     # Generate Huffman codes
     codes = generate_huffman_codes(huffman_tree)
     
+    # Validate codes
+    validate_huffman_codes(codes)
+    
     # Encode the data
     encoded = ''.join(codes[char] for char in data)
     
@@ -114,15 +125,11 @@ def huffman_decode(encoded_data, codes):
     if not encoded_data:
         return ''
     
+    # Validate codes first
+    validate_huffman_codes({k:v for k,v in codes.items()})
+    
     # Invert the codes dictionary
     reverse_codes = {code: char for char, code in codes.items()}
-    
-    # Validate that all codes are unique prefixes
-    all_codes = list(reverse_codes.keys())
-    for i, code1 in enumerate(all_codes):
-        for code2 in all_codes[i+1:]:
-            if code1.startswith(code2) or code2.startswith(code1):
-                raise ValueError("Huffman codes are not prefix-free")
     
     decoded = []
     current_code = ''
