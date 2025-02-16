@@ -117,29 +117,28 @@ def huffman_decode(encoded_data, codes):
     # Invert the codes dictionary
     reverse_codes = {code: char for char, code in codes.items()}
     
+    # Validate that all codes are unique prefixes
+    all_codes = list(reverse_codes.keys())
+    for i, code1 in enumerate(all_codes):
+        for code2 in all_codes[i+1:]:
+            if code1.startswith(code2) or code2.startswith(code1):
+                raise ValueError("Huffman codes are not prefix-free")
+    
     decoded = []
     current_code = ''
-    remaining_encoded = encoded_data
     
-    while remaining_encoded:
-        current_code += remaining_encoded[0]
+    for bit in encoded_data:
+        current_code += bit
+        
+        # Check if current_code matches any code
         if current_code in reverse_codes:
             decoded.append(reverse_codes[current_code])
-            # Reset current code
             current_code = ''
-            # Remove decoded part
-            remaining_encoded = remaining_encoded[1:]
-        else:
-            # Check if the current code is a prefix of any valid code
-            is_valid_prefix = any(code.startswith(current_code) for code in reverse_codes)
-            
-            if not is_valid_prefix:
-                raise ValueError("Invalid encoded data: Could not fully decode")
-            
-            # Move to next bit
-            remaining_encoded = remaining_encoded[1:]
+        elif not any(code.startswith(current_code) for code in reverse_codes):
+            # If current code is not a prefix of any code, it's invalid
+            raise ValueError("Invalid encoded data: Could not fully decode")
     
-    # Final validation: all should be decoded
+    # Check if we successfully decoded everything
     if current_code:
         raise ValueError("Invalid encoded data: Could not fully decode")
     
